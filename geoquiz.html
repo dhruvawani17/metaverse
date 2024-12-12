@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metaverse Quiz - Solar System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #ffffff;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .subject-selection select {
+      padding: 10px;
+      font-size: 1.2rem;
+      margin: 20px 0;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      transition: background-color 0.3s;
+    }
+
+    .subject-selection select:focus {
+      background-color: #0072ff;
+    }
+
+    .quiz-section, .result-section {
+      margin-top: 30px;
+      display: none;
+    }
+
+    .option {
+      background: #fff;
+      color: #333;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .option:hover {
+      background-color: #5c9eec;
+      transform: scale(1.05);
+    }
+
+    .option.selected {
+      background-color: #0072ff;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+      transform: translateY(-3px);
+    }
+
+    #next-button {
+      background-color: #0072ff;
+      margin-top: 10px;
+    }
+
+    #submit-quiz {
+      background-color: #ff6600;
+      display: none;
+    }
+
+    #result-section h2 {
+      font-size: 2rem;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Geography Quiz - Solar System</h1>
+
+    <div class="subject-selection">
+      <label for="subject" style="font-size: 1.2rem;">Select Subject: </label>
+      <select id="subject" onchange="loadTopic()">
+        <option value="geography">Geography</option>
+      </select>
+    </div>
+
+    <div id="quiz-section" class="quiz-section">
+      <h2>Solar System Quiz</h2>
+      <div id="question-container" style="font-size: 1.4rem;"></div>
+      <div id="options-container"></div>
+      <button id="next-button" onclick="nextQuestion()" style="display: none;">Next Question</button>
+      <button id="submit-quiz" onclick="submitQuiz()">Submit Quiz</button>
+    </div>
+
+    <div id="result-section" class="result-section">
+      <h2>Your Score: <span id="score"></span> / 5</h2>
+      <button onclick="restartQuiz()">Restart Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let quizQuestions = [];
+
+    const solarSystemQuestions = [
+      {
+        question: "Which planet is closest to the Sun?",
+        options: ["Mercury", "Venus", "Earth", "Mars"],
+        correct: "Mercury",
+      },
+      {
+        question: "Which planet is known as the Red Planet?",
+        options: ["Mars", "Jupiter", "Saturn", "Neptune"],
+        correct: "Mars",
+      },
+      {
+        question: "Which planet has the most moons?",
+        options: ["Jupiter", "Saturn", "Earth", "Venus"],
+        correct: "Jupiter",
+      },
+      {
+        question: "Which planet is known as the 'Gas Giant'?",
+        options: ["Saturn", "Neptune", "Earth", "Mars"],
+        correct: "Saturn",
+      },
+      {
+        question: "What is the largest planet in our Solar System?",
+        options: ["Earth", "Saturn", "Jupiter", "Mars"],
+        correct: "Jupiter",
+      },
+      {
+        question: "What is the name of the Earth's moon?",
+        options: ["Luna", "Titan", "Io", "Phobos"],
+        correct: "Luna",
+      },
+      {
+        question: "What is the only planet known to support life?",
+        options: ["Earth", "Mars", "Venus", "Jupiter"],
+        correct: "Earth",
+      }
+    ];
+
+    function loadTopic() {
+      const subject = document.getElementById('subject').value;
+      if (subject === "geography") {
+        quizQuestions = getSolarSystemQuestions();
+        startQuiz();
+      }
+    }
+
+    function startQuiz() {
+      document.getElementById('quiz-section').style.display = 'block';
+      document.getElementById('result-section').style.display = 'none';
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentQuestionIndex >= quizQuestions.length) {
+        showResult();
+        return;
+      }
+
+      const questionObj = quizQuestions[currentQuestionIndex];
+      const questionContainer = document.getElementById('question-container');
+      const optionsContainer = document.getElementById('options-container');
+
+      questionContainer.textContent = questionObj.question;
+
+      optionsContainer.innerHTML = '';
+      questionObj.options.forEach(option => {
+        const optionElement = document.createElement('div');
+        optionElement.classList.add('option');
+        optionElement.textContent = option;
+        optionElement.onclick = () => selectOption(option);
+        optionsContainer.appendChild(optionElement);
+      });
+
+      document.getElementById('next-button').style.display = 'inline-block';
+    }
+
+    function selectOption(option) {
+      const questionObj = quizQuestions[currentQuestionIndex];
+      const options = document.querySelectorAll('.option');
+      
+      options.forEach(opt => opt.classList.remove('selected'));
+      const selectedOption = Array.from(options).find(opt => opt.textContent === option);
+      selectedOption.classList.add('selected');
+      
+      questionObj.selectedAnswer = option;
+    }
+
+    function nextQuestion() {
+      const currentQuestion = quizQuestions[currentQuestionIndex];
+      if (currentQuestion.selectedAnswer === currentQuestion.correct) {
+        score++;
+      }
+      currentQuestionIndex++;
+      loadQuestion();
+    }
+
+    function showResult() {
+      document.getElementById('quiz-section').style.display = 'none';
+      document.getElementById('result-section').style.display = 'block';
+      document.getElementById('score').textContent = score;
+    }
+
+    function restartQuiz() {
+      score = 0;
+      currentQuestionIndex = 0;
+      loadTopic();
+    }
+
+    function getSolarSystemQuestions() {
+      return solarSystemQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
+    }
+
+    loadTopic();
+  </script>
+</body>
+</html>

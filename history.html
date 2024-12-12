@@ -18,26 +18,46 @@
         canvas {
             display: block;
         }
-    #historyButton, #geoquizButton {
-    position: absolute;
-    z-index: 9999;  /* Ensure it's on top */
-    display: block;  /* Initially display them for testing */
-    background-color: rgba(255, 0, 0, 0.7);  /* To see if buttons are appearing */
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-}
+    #historyButton{
+        position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 50%;  /* Full width of the page */
+            z-index: 9999;  /* Ensure it's on top */
+            background-color: rgba(255, 0, 0, 0.7);  /* Background color for visibility */
+            color: white;
+            display: flex;  /* Flexbox to align buttons horizontally */
+            justify-content: center;  /* Center buttons horizontally */
+            align-items: center;  /* Vertically center buttons */
+            gap: 10px;  /* Space between the buttons */
+            padding: 10px 0;  /* Vertical padding for buttons */
+            cursor: pointer;
+            
+        }
+        #geoquizButton{
+            position: fixed;
+            bottom: 0;
+        
+            right: 0;
+            width: 50%;  /* Full width of the page */
+            z-index: 9999;  /* Ensure it's on top */
+            color: white;
+            background-color: rgb(43, 23, 171);  /* Background color for visibility */
+            display: flex;  /* Flexbox to align buttons horizontally */
+            justify-content: center;  /* Center buttons horizontally */
+            align-items: center;  /* Vertically center buttons */
+            gap: 10px;  /* Space between the buttons */
+            padding: 10px 0;  /* Vertical padding for buttons */
+            cursor: pointer;
+        }
 
     </style>
     <div>
-        <button id="historyButton" style="position: absolute; display: none;">History</button>
-        
-       
-    </div>
-    <div>
-    <button id ="geoquizButton" style="position: absolute; display: none;">Geoquiz</button>
-</div>   
+        <div class="footer">
+            <a href="index.html"><button id="historyButton">Go to Geography class </button></a>
+            <a href="historyquiz.html"><button id= "geoquizButton">Go to History quiz</button></a>
+        </div>
+    </div> 
     <script>
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xE6E6FA); // Light purple background

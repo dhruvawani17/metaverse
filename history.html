@@ -22,7 +22,7 @@
         position: fixed;
             bottom: 0;
             left: 0;
-            width: 50%;  /* Full width of the page */
+            width: 33%;  /* Full width of the page */
             z-index: 9999;  /* Ensure it's on top */
             background-color: rgba(255, 0, 0, 0.7);  /* Background color for visibility */
             color: white;
@@ -32,14 +32,15 @@
             gap: 10px;  /* Space between the buttons */
             padding: 10px 0;  /* Vertical padding for buttons */
             cursor: pointer;
+            height: 7.88%;
             
         }
         #geoquizButton{
             position: fixed;
             bottom: 0;
         
-            right: 0;
-            width: 50%;  /* Full width of the page */
+            right:33%;
+            width: 33%;  /* Full width of the page */
             z-index: 9999;  /* Ensure it's on top */
             color: white;
             background-color: rgb(43, 23, 171);  /* Background color for visibility */
@@ -50,12 +51,30 @@
             padding: 10px 0;  /* Vertical padding for buttons */
             cursor: pointer;
         }
+        #doubt{
+            position: fixed;
+            bottom: 0;
+        
+            right: 0;
+            width: 33%;  /* Full width of the page */
+            z-index: 9999;  /* Ensure it's on top */
+            color: white;
+            background-color: rgb(64, 199, 15);  /* Background color for visibility */
+            display: flex;  /* Flexbox to align buttons horizontally */
+            justify-content: center;  /* Center buttons horizontally */
+            align-items: center;  /* Vertically center buttons */
+            gap: 10px;  /* Space between the buttons */
+            padding: 10px 0;  /* Vertical padding for buttons */
+            cursor: pointer;
+            
+        }
 
     </style>
     <div>
         <div class="footer">
             <a href="index2.html"><button id="historyButton">Go to Geography class </button></a>
             <a href="historyquiz.html"><button id= "geoquizButton">Go to History quiz</button></a>
+            <a href="doubt.html"><button id= "doubt">Ask your Doubt</button></a>
         </div>
     </div> 
     <script>

@@ -18,31 +18,47 @@
         canvas {
             display: block;
         }
-        #historyButton, #geoquizButton {
-  position: absolute;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  background-color: #4CAF50;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  z-index: 1000; /* Ensure buttons are on top of other elements */
-}
-
-#historyButton:hover, #geoquizButton:hover {
-  background-color: #3e8e41;
-}
+    #historyButton{
+        position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 50%;  /* Full width of the page */
+            z-index: 9999;  /* Ensure it's on top */
+            background-color: rgba(255, 0, 0, 0.7);  /* Background color for visibility */
+            color: white;
+            display: flex;  /* Flexbox to align buttons horizontally */
+            justify-content: center;  /* Center buttons horizontally */
+            align-items: center;  /* Vertically center buttons */
+            gap: 10px;  /* Space between the buttons */
+            padding: 10px 0;  /* Vertical padding for buttons */
+            cursor: pointer;
+            
+        }
+        #geoquizButton{
+            position: fixed;
+            bottom: 0;
+        
+            right: 0;
+            width: 50%;  /* Full width of the page */
+            z-index: 9999;  /* Ensure it's on top */
+            color: white;
+            background-color: rgb(43, 23, 171);  /* Background color for visibility */
+            display: flex;  /* Flexbox to align buttons horizontally */
+            justify-content: center;  /* Center buttons horizontally */
+            align-items: center;  /* Vertically center buttons */
+            gap: 10px;  /* Space between the buttons */
+            padding: 10px 0;  /* Vertical padding for buttons */
+            cursor: pointer;
+            
+        }
 
     </style>
     <div>
-        <button id="historyButton" style="position: absolute; display: none;">History class </button>
-        
-       
-    </div>
-    <div>
-    <button id ="geoquizButton" style="position: absolute; display: none;">Geoquiz</button>
-</div>   
+        <div class="footer">
+            <a href="history.html"><button id="historyButton">Go to History class </button></a>
+            <a href="geoquiz.html"><button id= "geoquizButton">Go to GeoQuiz</button></a>
+        </div>
+    </div> 
     <script>
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xE6E6FA); // Light purple background
@@ -298,34 +314,6 @@ function createDoor() {
     doorGroup.position.set(8, 2, 9.85);
     scene.add(doorGroup);
 }
-// Create door button function
-function createDoorButton(position) {
-            const button = document.createElement('button');
-            button.textContent = 'Go to History Class';
-            button.style.position = 'absolute';
-            button.style.left = `${position.x}px`;
-            button.style.top = `${position.y}px`;
-            button.style.padding = '10px 20px';
-            button.style.backgroundColor = '#007BFF';
-            button.style.color = '#fff';
-            button.style.border = 'none';
-            button.style.borderRadius = '5px';
-            button.style.cursor = 'pointer';
-            button.onclick = () => {
-                window.location.href = 'history.html'; // Link to history page
-            };
-            document.body.appendChild(button);
-            return button;
-        }
-
-        // Position and create button near the bottom of the page
-const doorButtonPosition = { 
-    x: window.innerWidth / 2 - 50,  // Center horizontally
-    y: window.innerHeight - 50      // Position near the bottom of the page
-};
-
-createDoorButton(doorButtonPosition);
-
 
 
 
@@ -590,77 +578,6 @@ function createTexturedWall(width, height, depth, position) {
 createTexturedWall(20, 10, 0.3, new THREE.Vector3(0, 5, -10)); // Back wall
 createTexturedWall(0.3, 10, 20, new THREE.Vector3(-10, 5, 0)); // Left wall
 createTexturedWall(0.3, 10, 20, new THREE.Vector3(10, 5, 0));  // Right wall
-
-// Assuming you're creating a group for your objects
-const doorGroup = new THREE.Group();
-
-// Create the door or mesh (example)
-const doorGeometry = new THREE.BoxGeometry(1, 2, 0.1);
-const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
-
-// Add the door to the doorGroup
-doorGroup.add(doorMesh);
-
-// Position the doorGroup (for example)
-doorGroup.position.set(0, 0, -5);  // Move it 5 units away from the camera
-
-// Add doorGroup to the scene
-scene.add(doorGroup);
-
-// Now the doorGroup is defined and can be accessed
-// Button Logic
-const historyButton = document.getElementById('historyButton');
-const geoquizButton = document.getElementById('geoquizButton');  // Add a second button for geoquiz
-
-// Function to update button positions
-function updateButtonPosition() {
-    if (!doorGroup) {
-        console.error('doorGroup is not defined!');
-        return;
-    }
-
-    // Ensure the doorGroup position is projected to screen space
-    const vector = doorGroup.position.clone().project(camera);
-
-    // Log the projected vector for debugging (screen space coordinates)
-    console.log(`Door position (screen space): x=${vector.x}, y=${vector.y}, z=${vector.z}`);
-
-    // Calculate screen position for buttons
-    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (1 - (vector.y * 0.5 + 0.5)) * window.innerHeight;
-
-    // Log the calculated button positions to verify they are correct
-    console.log(`Calculated Button position: x=${x}px, y=${y}px`);
-
-    // **For debugging**: Try setting the buttons at a fixed position
-    // Temporarily set the buttons at a fixed position to make sure they're visible.
-    historyButton.style.left = '50px';  // Set a fixed position for testing
-    historyButton.style.top = '50px';   // Set a fixed position for testing
-    historyButton.style.display = 'block';  // Always show history button
-
-    geoquizButton.style.left = '200px';  // Set a fixed position for testing
-    geoquizButton.style.top = '50px';   // Set a fixed position for testing
-    geoquizButton.style.display = 'block';  // Always show geoquiz button
-}
-
-// Button click events
-historyButton.addEventListener('click', () => {
-    window.location.href = 'history.html';
-});
-
-geoquizButton.addEventListener('click', () => {
-    window.location.href = 'geoquiz.html';
-});
-
-// Animate function to continuously update button positions
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-    updateButtonPosition();
-}
-
-animate();
 
 
         

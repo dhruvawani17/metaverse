@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Virtual Classroom</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+        #historyButton, #geoquizButton {
+  position: absolute;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  z-index: 1000; /* Ensure buttons are on top of other elements */
+}
+
+#historyButton:hover, #geoquizButton:hover {
+  background-color: #3e8e41;
+}
+
+    </style>
+    <div>
+        <button id="historyButton" style="position: absolute; display: none;">History class </button>
+        
+       
+    </div>
+    <div>
+    <button id ="geoquizButton" style="position: absolute; display: none;">Geoquiz</button>
+</div>   
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xE6E6FA); // Light purple background
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 10);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // Enhanced lighting
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        mainLight.position.set(10, 10, 10);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+
+        // Walls
+        function createWall(width, height, depth, color, position) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: color,
+                roughness: 0.7,
+            });
+            const wall = new THREE.Mesh(geometry, material);
+            wall.position.copy(position);
+            wall.castShadow = true;
+            wall.receiveShadow = true;
+            scene.add(wall);
+            return wall;
+        }
+
+        // Create walls
+        createWall(20, 10, 0.3, 0xE8DFE0, new THREE.Vector3(0, 5, -10)); // Back wall
+        createWall(0.3, 10, 20, 0xE8DFE0, new THREE.Vector3(-10, 5, 0)); // Left wall
+        createWall(0.3, 10, 20, 0xE8DFE0, new THREE.Vector3(10, 5, 0));  // Right wall
+
+        // Enhanced floor with texture
+        const floorGeometry = new THREE.PlaneGeometry(20, 20);
+        const floorMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x808080,
+            roughness: 0.8,
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Add windows
+        function createWindow(position) {
+            const windowFrame = new THREE.BoxGeometry(2, 3, 0.3);
+            const windowMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x87CEEB,
+                transparent: true,
+                opacity: 0.6
+            });
+            const windowMesh = new THREE.Mesh(windowFrame, windowMaterial);
+            windowMesh.position.copy(position);
+            scene.add(windowMesh);
+        }
+
+        // Add windows to the left wall
+        for (let i = -6; i <= 6; i += 4) {
+            createWindow(new THREE.Vector3(-9.8, 5, i));
+        }
+
+        // Enhanced desk creation with more detail
+        function createDesk(position) {
+            const deskTop = new THREE.BoxGeometry(2, 0.1, 1);
+            const deskLeg = new THREE.BoxGeometry(0.1, 1, 0.1);
+            const deskMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+            
+            const top = new THREE.Mesh(deskTop, deskMaterial);
+            top.position.copy(position);
+            top.position.y += 0.5;
+            top.castShadow = true;
+            scene.add(top);
+
+            // Add legs
+            const legPositions = [
+                [-0.9, -0.45, 0.4],
+                [0.9, -0.45, 0.4],
+                [-0.9, -0.45, -0.4],
+                [0.9, -0.45, -0.4]
+            ];
+
+            legPositions.forEach(pos => {
+                const leg = new THREE.Mesh(deskLeg, deskMaterial);
+                leg.position.set(
+                    position.x + pos[0],
+                    position.y + pos[1],
+                    position.z + pos[2]
+                );
+                leg.castShadow = true;
+                scene.add(leg);
+            });
+        }
+
+        // Place desks in a classroom layout
+        for (let i = -8; i <= 8; i += 4) {
+            for (let j = -6; j <= 6; j += 4) {
+                createDesk(new THREE.Vector3(i, 1, j));
+            }
+        }
+
+// Whiteboard geometry and frame
+const whiteboardGeometry = new THREE.BoxGeometry(10, 5, 0.1);
+const whiteboardMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.1
+});
+const whiteboard = new THREE.Mesh(whiteboardGeometry, whiteboardMaterial);
+whiteboard.position.set(0, 4, -9.8);
+scene.add(whiteboard);
+
+const frameGeometry = new THREE.BoxGeometry(10.4, 5.4, 0.05);
+const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x4A4A4A });
+const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+frame.position.set(0, 4, -9.85);
+scene.add(frame);
+
+// Add video to whiteboard
+const video = document.createElement('video');
+video.src ='video1.mp4'; // Path to your video
+video.loop = true;
+video.muted =true; // Optional: mute for testing
+video.autoplay = true;
+
+video.play().then(() => {
+    const videoTexture = new THREE.VideoTexture(video);
+    videoTexture.minFilter = THREE.LinearFilter;
+    videoTexture.magFilter = THREE.LinearFilter;
+    videoTexture.format = THREE.RGBFormat;
+
+    const videoMaterial = new THREE.MeshBasicMaterial({
+        map: videoTexture,
+    });
+
+    whiteboard.material = videoMaterial;
+}).catch((error) => {
+    console.error("Video playback error:", error);
+});
+
+
+        // Add these functions and code blocks after the whiteboard section and before the OrbitControls setup
+
+// Create a chair function
+function createChair(position) {
+    const chairGroup = new THREE.Group();
+    
+    // Seat
+    const seatGeometry = new THREE.BoxGeometry(0.8, 0.1, 0.8);
+    const chairMaterial = new THREE.MeshStandardMaterial({ color: 0x4A4A4A });
+    const seat = new THREE.Mesh(seatGeometry, chairMaterial);
+    
+    // Backrest
+    const backrestGeometry = new THREE.BoxGeometry(0.8, 1, 0.1);
+    const backrest = new THREE.Mesh(backrestGeometry, chairMaterial);
+    backrest.position.set(0, 0.5, 0.35);
+    
+    // Legs
+    const legGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.8);
+    const legPositions = [
+        [-0.35, -0.4, 0.35],
+        [0.35, -0.4, 0.35],
+        [-0.35, -0.4, -0.35],
+        [0.35, -0.4, -0.35]
+    ];
+    
+    legPositions.forEach(pos => {
+        const leg = new THREE.Mesh(legGeometry, chairMaterial);
+        leg.position.set(pos[0], pos[1], pos[2]);
+        chairGroup.add(leg);
+    });
+    
+    chairGroup.add(seat);
+    chairGroup.add(backrest);
+    chairGroup.position.copy(position);
+    chairGroup.castShadow = true;
+    chairGroup.receiveShadow = true;
+    scene.add(chairGroup);
+}
+
+// Create AI Avatar function
+function createAvatar(position, color) {
+    const avatarGroup = new THREE.Group();
+    
+    // Head
+    const headGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+    const avatarMaterial = new THREE.MeshStandardMaterial({ color: color });
+    const head = new THREE.Mesh(headGeometry, avatarMaterial);
+    head.position.y = 1.7;
+    
+    // Body
+    const bodyGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.8, 32);
+    const body = new THREE.Mesh(bodyGeometry, avatarMaterial);
+    body.position.y = 1.2;
+    
+    // Arms
+    const armGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.6, 32);
+    const leftArm = new THREE.Mesh(armGeometry, avatarMaterial);
+    leftArm.position.set(-0.35, 1.3, 0);
+    leftArm.rotation.z = -Math.PI / 6;
+    
+    const rightArm = new THREE.Mesh(armGeometry, avatarMaterial);
+    rightArm.position.set(0.35, 1.3, 0);
+    rightArm.rotation.z = Math.PI / 6;
+    
+    avatarGroup.add(head);
+    avatarGroup.add(body);
+    avatarGroup.add(leftArm);
+    avatarGroup.add(rightArm);
+    
+    avatarGroup.position.copy(position);
+    avatarGroup.castShadow = true;
+    scene.add(avatarGroup);
+    
+    return avatarGroup;
+}
+
+// Create door (entry/exit point)
+function createDoor() {
+    const doorGroup = new THREE.Group();
+    
+    // Door frame
+    const frameGeometry = new THREE.BoxGeometry(2.2, 4.2, 0.3);
+    const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+    const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+    
+    // Door
+    const doorGeometry = new THREE.BoxGeometry(2, 4, 0.2);
+    const doorMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xA0522D,
+        metalness: 0.1,
+        roughness: 0.8
+    });
+    const door = new THREE.Mesh(doorGeometry, doorMaterial);
+    door.position.z = 0.1;
+    
+    // Doorknob
+    const knobGeometry = new THREE.SphereGeometry(0.1);
+    const knobMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700 });
+    const knob = new THREE.Mesh(knobGeometry, knobMaterial);
+    knob.position.set(0.8, 0, 0.2);
+    
+    doorGroup.add(frame);
+    doorGroup.add(door);
+    doorGroup.add(knob);
+    doorGroup.position.set(8, 2, 9.85);
+    scene.add(doorGroup);
+}
+// Create door button function
+function createDoorButton(position) {
+            const button = document.createElement('button');
+            button.textContent = 'Go to History Class';
+            button.style.position = 'absolute';
+            button.style.left = `${position.x}px`;
+            button.style.top = `${position.y}px`;
+            button.style.padding = '10px 20px';
+            button.style.backgroundColor = '#007BFF';
+            button.style.color = '#fff';
+            button.style.border = 'none';
+            button.style.borderRadius = '5px';
+            button.style.cursor = 'pointer';
+            button.onclick = () => {
+                window.location.href = 'history.html'; // Link to history page
+            };
+            document.body.appendChild(button);
+            return button;
+        }
+
+        // Position and create button near the bottom of the page
+const doorButtonPosition = { 
+    x: window.innerWidth / 2 - 50,  // Center horizontally
+    y: window.innerHeight - 50      // Position near the bottom of the page
+};
+
+createDoorButton(doorButtonPosition);
+
+
+
+
+// Place chairs at each desk
+for (let i = -8; i <= 8; i += 4) {
+    for (let j = -6; j <= 6; j += 4) {
+        createChair(new THREE.Vector3(i, 0.5, j + 0.8));
+    }
+}
+
+
+
+// Add AI avatars (students)
+const avatarColors = [0x4287f5, 0xf54242, 0x42f554, 0xf5d442, 0xf542f2];
+let colorIndex = 0;
+
+for (let i = -8; i <= 8; i += 4) {
+    for (let j = -6; j <= 6; j += 4) {
+        createAvatar(
+            new THREE.Vector3(i, 0, j + 0.8),
+            avatarColors[colorIndex % avatarColors.length]
+        );
+        colorIndex++;
+    }
+}
+
+// Function to create the teacher's avatar with legs
+function createTeacherAvatar(position, color) {
+    // Create the avatar body (assuming you have a method for that)
+    const avatar = createAvatar(position, color);
+
+    // Add teacher's legs
+    const legHeight = 0.75; // Height of the legs
+    const legWidth = 0.4; // Width of the legs
+    const legDistance = 1.0; // Distance between the legs
+    
+    // Create left leg
+    const leftLegGeometry = new THREE.CylinderGeometry(legWidth, legWidth, legHeight);
+    const leftLegMaterial = new THREE.MeshBasicMaterial({ color: color });
+    const leftLeg = new THREE.Mesh(leftLegGeometry, leftLegMaterial);
+    leftLeg.position.set(position.x - legDistance / 2, position.y - 2.0, position.z); // Position left leg lower
+    leftLeg.rotation.x = Math.PI / 2; // Rotate the leg to stand up
+    scene.add(leftLeg);
+    
+    // Create right leg
+    const rightLegGeometry = new THREE.CylinderGeometry(legWidth, legWidth, legHeight);
+    const rightLegMaterial = new THREE.MeshBasicMaterial({ color: color });
+    const rightLeg = new THREE.Mesh(rightLegGeometry, rightLegMaterial);
+    rightLeg.position.set(position.x + legDistance / 2, position.y - 2.0, position.z); // Position right leg lower
+    rightLeg.rotation.x = Math.PI / 2; // Rotate the leg to stand up
+    scene.add(rightLeg);
+    
+    return avatar;
+}
+
+// Add teacher avatar with legs
+const teacherAvatar = createTeacherAvatar(
+    new THREE.Vector3(0, 0.75, -8.2),
+    0xFFD700 // Gold color for teacher
+);
+
+// Create entry/exit door
+createDoor();
+
+// Add some random movement to avatars
+const avatars = [];
+scene.traverse((object) => {
+    if (object instanceof THREE.Group && object !== teacherAvatar) {
+        avatars.push(object);
+    }
+});
+
+// Modify the animate function to add subtle movement
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // Add subtle movement to avatars
+    const time = Date.now() * 0.001;
+    avatars.forEach((avatar, index) => {
+        avatar.position.y = Math.sin(time + index) * 0.05 + 0;
+        avatar.rotation.y = Math.sin(time + index) * 0.1;
+    });
+    
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+
+        // OrbitControls setup
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+// Variables to track camera movement
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+
+// Event listeners for arrow keys
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowUp':
+            moveForward = true;
+            break;
+        case 'ArrowDown':
+            moveBackward = true;
+            break;
+        case 'ArrowLeft':
+            moveLeft = true;
+            break;
+        case 'ArrowRight':
+            moveRight = true;
+            break;
+    }
+});
+
+document.addEventListener('keyup', (event) => {
+    switch (event.key) {
+        case 'ArrowUp':
+            moveForward = false;
+            break;
+        case 'ArrowDown':
+            moveBackward = false;
+            break;
+        case 'ArrowLeft':
+            moveLeft = false;
+            break;
+        case 'ArrowRight':
+            moveRight = false;
+            break;
+    }
+});
+
+// Update camera position based on key presses
+function updateCamera() {
+    const speed = 0.1; // Adjust the speed as needed
+
+    if (moveForward) camera.position.z -= speed;
+    if (moveBackward) camera.position.z += speed;
+    if (moveLeft) camera.position.x -= speed;
+    if (moveRight) camera.position.x += speed;
+}
+
+// Animate the scene
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Update camera based on user input
+    updateCamera();
+
+    // Render the scene
+    renderer.render(scene, camera);
+}
+
+
+
+
+        
+        animate();
+// Function to create the teacher's avatar with legs
+function createTeacherAvatar(position, color) {
+    const avatar = createAvatar(position, color);
+
+    // Add teacher's legs
+    const legHeight = 20.5; // Height of the legs
+    const legRadius = 0.1; // Thickness of the legs
+    const legGeometry = new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 32);
+
+    const legMaterial = new THREE.MeshStandardMaterial({ color: color });
+    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+    leftLeg.position.set(position.x - 0.15, position.y - (legHeight / 2), position.z);
+
+    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+    rightLeg.position.set(position.x + 2.15, position.y - (legHeight / 2), position.z);
+
+    scene.add(leftLeg);
+    scene.add(rightLeg);
+
+    return avatar;
+}
+
+// Place teacher at the front
+const teacher = createTeacherAvatar(new THREE.Vector3(0, 0, -7), 0xff4500); // Orange-colored teacher
+
+        // Create fans
+        function createFan(position) {
+            const fanGroup = new THREE.Group();
+
+            // Fan blades
+            const bladeGeometry = new THREE.BoxGeometry(2, 0.1, 0.2);
+            const bladeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
+
+            for (let i = 0; i < 4; i++) {
+                const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                blade.rotation.z = (Math.PI / 2) * i;
+                fanGroup.add(blade);
+            }
+
+            // Fan motor
+            const motorGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.5);
+            const motorMaterial = new THREE.MeshStandardMaterial({ color: 0x404040 });
+            const motor = new THREE.Mesh(motorGeometry, motorMaterial);
+            motor.rotation.x = Math.PI / 2;
+            fanGroup.add(motor);
+
+            fanGroup.position.copy(position);
+            scene.add(fanGroup);
+
+            return fanGroup;
+        }
+
+        // Add fans
+        const fans = [];
+        for (let i = -8; i <= 8; i += 8) {
+            for (let j = -8; j <= 8; j += 8) {
+                fans.push(createFan(new THREE.Vector3(i, 8, j)));
+            }
+        }
+// Texture loader
+const textureLoader = new THREE.TextureLoader();
+
+// Load a classroom wall texture (replace with a suitable image URL)
+const wallTexture = textureLoader.load('wall.jpg'); // Replace with your texture URL
+
+
+// Create wall material
+const texturedWallMaterial = new THREE.MeshStandardMaterial({
+    map: wallTexture,             // Base color map
+    bumpMap: bumpTexture,         // Optional bump map for depth
+    bumpScale: 0.2,               // Adjust bumpiness
+    roughness: 0.8,               // Surface roughness
+    metalness: 0.0                // Non-metallic appearance
+});
+
+// Function to create textured wall
+function createTexturedWall(width, height, depth, position) {
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+    const wall = new THREE.Mesh(geometry, texturedWallMaterial);
+    wall.position.copy(position);
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    scene.add(wall);
+    return wall;
+}
+
+// Replace existing walls with textured walls
+createTexturedWall(20, 10, 0.3, new THREE.Vector3(0, 5, -10)); // Back wall
+createTexturedWall(0.3, 10, 20, new THREE.Vector3(-10, 5, 0)); // Left wall
+createTexturedWall(0.3, 10, 20, new THREE.Vector3(10, 5, 0));  // Right wall
+
+// Assuming you're creating a group for your objects
+const doorGroup = new THREE.Group();
+
+// Create the door or mesh (example)
+const doorGeometry = new THREE.BoxGeometry(1, 2, 0.1);
+const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
+
+// Add the door to the doorGroup
+doorGroup.add(doorMesh);
+
+// Position the doorGroup (for example)
+doorGroup.position.set(0, 0, -5);  // Move it 5 units away from the camera
+
+// Add doorGroup to the scene
+scene.add(doorGroup);
+
+// Now the doorGroup is defined and can be accessed
+// Button Logic
+const historyButton = document.getElementById('historyButton');
+const geoquizButton = document.getElementById('geoquizButton');  // Add a second button for geoquiz
+
+// Function to update button positions
+function updateButtonPosition() {
+    if (!doorGroup) {
+        console.error('doorGroup is not defined!');
+        return;
+    }
+
+    // Ensure the doorGroup position is projected to screen space
+    const vector = doorGroup.position.clone().project(camera);
+
+    // Log the projected vector for debugging (screen space coordinates)
+    console.log(`Door position (screen space): x=${vector.x}, y=${vector.y}, z=${vector.z}`);
+
+    // Calculate screen position for buttons
+    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (1 - (vector.y * 0.5 + 0.5)) * window.innerHeight;
+
+    // Log the calculated button positions to verify they are correct
+    console.log(`Calculated Button position: x=${x}px, y=${y}px`);
+
+    // **For debugging**: Try setting the buttons at a fixed position
+    // Temporarily set the buttons at a fixed position to make sure they're visible.
+    historyButton.style.left = '50px';  // Set a fixed position for testing
+    historyButton.style.top = '50px';   // Set a fixed position for testing
+    historyButton.style.display = 'block';  // Always show history button
+
+    geoquizButton.style.left = '200px';  // Set a fixed position for testing
+    geoquizButton.style.top = '50px';   // Set a fixed position for testing
+    geoquizButton.style.display = 'block';  // Always show geoquiz button
+}
+
+// Button click events
+historyButton.addEventListener('click', () => {
+    window.location.href = 'history.html';
+});
+
+geoquizButton.addEventListener('click', () => {
+    window.location.href = 'geoquiz.html';
+});
+
+// Animate function to continuously update button positions
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+    updateButtonPosition();
+}
+
+animate();
+
+
+        
+    </script>
+    
+</body>
+</html>
